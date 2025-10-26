@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>💻 Hacker Code Player</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#0f172a; --ink:#e5e7eb; --muted:#9aa4b2; --accent:#60a5fa;
+    --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --card:#111827; --edge:#1f2937;
+    --marquee-speed: 20s;
+    --marquee-height: 50px;
+    --font-family: "Courier New", Consolas, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,Segoe UI,Roboto,Inter,Arial}
+
+  /* --- Top Header --- */
+  header{
+    position:sticky;top:0;z-index:10;
+    background:linear-gradient(180deg,var(--panel),#0d1528);
+    border-bottom:1px solid var(--edge);
+    padding:12px 16px;
+    display:flex;flex-wrap:wrap;gap:12px;align-items:center;
+  }
+  header .title{font-weight:700;letter-spacing:.3px;font-size:16px}
+  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto}
+  button,.btn{
+    background:#1f2a44;border:1px solid #263556;color:var(--ink);
+    padding:8px 12px;border-radius:12px;cursor:pointer;
+    transition:.15s;display:inline-flex;gap:6px;align-items:center;font-size:14px
+  }
+  button:hover{transform:translateY(-1px);box-shadow:0 6px 20px #0003;border-color:#35507a}
+  button:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+  .primary{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1e40af}
+  .danger{background:#3a1f26;border-color:#5a2530}
+  input[type="file"]{display:none}
+  .chip{font-size:12px;color:var(--muted)}
+
+  /* --- Main Grid Layout --- */
+  .wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px}
+  @media (max-width:960px){.wrap{grid-template-columns:1fr}}
+
+  .pane{
+    background:var(--panel);border:1px solid var(--edge);
+    border-radius:16px;overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .pane header{background:#0c1426;border:0;padding:10px 12px}
+  .pane header .h{font-weight:600;color:#cbd5e1}
+  .pane .body{position:relative}
+
+  /* --- Code Area --- */
+  .code-shell{
+    display:grid;grid-template-rows:auto 1fr;
+    height:70vh; /* 🔥 Fixed height */
+  }
+  .progress{height:6px;background:#0e1b33;overflow:hidden}
+  .progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#34d399);transition:width .15s}
+  pre.code{
+    margin:0;overflow:auto;padding:16px;background:#000;
+    color:#90ee90;font:15px/1.5 ui-monospace,Menlo,Consolas,"Courier New",monospace;
+    border-top:1px solid var(--edge);
+    white-space:pre-wrap;word-break:break-word;
+    text-shadow:0 0 5px #33ff33;
+  }
+  .ghost-caret{display:inline-block;width:10px;height:1.2em;background:#00ff00cc;vertical-align:-2px;animation:blink 1s steps(1) infinite;margin-left:1px}
+  @keyframes blink{50%{opacity:0}}
+
+  /* --- Input Zone --- */
+  .input-row{display:flex;gap:8px;align-items:center;padding:8px;border-top:1px solid var(--edge);background:#0b1324;flex-wrap:wrap}
+  .input-row textarea{
+    flex:1;min-height:100px;max-height:220px;background:#0e172b;color:#e2e8f0;
+    border:1px solid #1e293b;border-radius:12px;padding:10px 12px;resize:vertical;width:100%
+  }
+
+  /* --- Preview --- */
+  .preview{
+    background:#0a0f1f;
+    height:70vh;/* 🔥 Fixed height */
+    overflow:hidden;
+  }
+  iframe{
+    width:100%;height:100%;
+    border:0;background:white;
+    border-top:1px solid var(--edge);
+    overflow:auto;
+  }
+
+  .hint{padding:10px 12px;border-top:1px solid var(--edge);color:#9fb3c8;font-size:13px;background:#0c1426}
+
+  /* --- Control Bars --- */
+  .ctrlbar{
+    display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+    padding:8px 12px;background:#0c1426;border-bottom:1px solid var(--edge)
+  }
+  .ctrlbar label{font-size:13px;color:var(--muted)}
+  .ctrlbar input[type=range]{accent-color:var(--accent)}
+  .ctrlbar select{background:#1f2a44;color:var(--ink);border:1px solid #263556;border-radius:6px;padding:4px 8px}
+
+  .row{display:flex;gap:8px;flex-wrap:wrap;padding:8px 12px;background:#0c1426;border-bottom:1px solid var(--edge)}
+
+  /* --- Hacker Marquee --- */
+  .hacker-marquee-wrap {width:100%;overflow:hidden;padding:6px 0}
+  .hacker-marquee {
+    display: flex;
+  gap: 60px;
+  align-items: center;
+  white-space: nowrap;
+  will-change: transform;
+  animation: marqueeMove var(--marquee-speed) linear infinite;
+  font-family: var(--font-family);
+  font-weight: 700;
+  font-size: 18px;
+  height: var(--marquee-height);
+  line-height: var(--marquee-height);
+  letter-spacing: 1px;
+  padding-left: 12px;
+  position: relative;
+  }
+  .hacker-marquee .seg:nth-child(1){color:#39ff14;text-shadow:0 0 8px #39ff14,0 0 20px #00ff88}
+  .hacker-marquee .seg:nth-child(2){color:#ffb347;text-shadow:0 0 8px #ffb347,0 0 20px #ff8000}
+  .hacker-marquee .seg:nth-child(3){color:#ff3b3b;text-shadow:0 0 8px #ff3b3b,0 0 20px #ff0000}
+  .hacker-marquee .seg:nth-child(4){color:#00e5ff;text-shadow:0 0 8px #00e5ff,0 0 20px #00bfff}
+  .hacker-marquee .seg:nth-child(5){color:#d57bff;text-shadow:0 0 8px #d57bff,0 0 20px #b84dff}
+  .hacker-marquee .seg:nth-child(6){color:#ffff66;text-shadow:0 0 8px #ffff66,0 0 20px #ffd700}
+  .hacker-marquee .seg:nth-child(7){color:#00ffcc;text-shadow:0 0 8px #00ffcc,0 0 20px #00cc99}
+  .hacker-marquee .seg:nth-child(8){color:#ff66ff;text-shadow:0 0 8px #ff66ff,0 0 20px #cc00cc}
+  .hacker-marquee .seg:nth-child(9){color:#66a3ff;text-shadow:0 0 8px #66a3ff,0 0 20px #0047ab}
+  .hacker-marquee .seg:nth-child(10){color:#ff6666;text-shadow:0 0 8px #ff6666,0 0 20px #cc0000}
+  .hacker-marquee .seg {display:inline-block;padding:0 6px;animation:segFlicker 4s infinite}
+  @keyframes segFlicker {
+    0%{filter:brightness(1);opacity:1}
+    40%{filter:brightness(1.25)}
+    60%{filter:brightness(.9);opacity:.85}
+    100%{filter:brightness(1);opacity:1}
+  }
+  @keyframes marqueeMove {0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+</style>
+</head>
+<body>
+  <header>
+    <div class="title">💻 Hacker Code Player</div>
+    <div class="bar ctrls">
+      <label for="file" class="btn">📄 Upload</label>
+      <input id="file" type="file" accept=".html,.htm,.txt,.md" />
+      <button id="useSample" class="btn">📎 Sample</button>
+      <span class="chip">Paste ya upload ➜ Run</span>
+    </div>
+  </header>
+
+  <!-- Hacker Marquee -->
+  <div class="hacker-marquee-wrap">
+    <div class="hacker-marquee" id="hMarquee">
+      <span class="seg">█ INITIATING SYSTEM</span>
+      <span class="seg">接続 確立</span>
+      <span class="seg">セキュアモード 起動</span>
+      <span class="seg">Acceso Autorizado</span>
+      <span class="seg">Connexion Sécurisée</span>
+      <span class="seg">Verbindung Erfolgreich</span>
+      <span class="seg">Sistema Protegido</span>
+      <span class="seg">Sicurezza Attivata</span>
+      <span class="seg">المصادقة ناجحة</span>
+      <span class="seg">सिस्टम सुरक्षित</span>
+      
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="ctrlbar">
+    <label>Speed</label>
+    <input id="speed" type="range" min="20" max="1000" value="240"/>
+    <span id="speedVal">240 cps</span>
+    <label>Chunk</label>
+    <input id="chunk" type="range" min="1" max="20" value="4"/>
+    <span id="chunkVal">4 chars/tick</span>
+    <button id="update" class="btn">Update</button>
+    <select id="fps">
+      <option value="30">~30 FPS</option>
+      <option value="60">~60 FPS</option>
+      <option value="15">~15 FPS</option>
+      <option value="10">~10 FPS</option>
+    </select>
+  </div>
+  <div class="row">
+    <button id="run" class="primary">▶ Run</button>
+    <button id="pause" class="btn">⏸ Pause</button>
+    <button id="step" class="btn">⏭ Step</button>
+    <button id="reset" class="danger">⟲ Reset</button>
+  </div>
+
+  <div class="wrap">
+    <!-- Left -->
+    <section class="pane">
+      <header><span class="h">Typing Playback</span></header>
+      <div class="body code-shell">
+        <div class="progress"><i id="bar"></i></div>
+        <pre id="code" class="code"><span class="ghost-caret"></span></pre>
+      </div>
+      <div class="hint">Run dabao → hacker style typing shuru hoga…</div>
+      <div class="input-row">
+        <textarea id="input" placeholder="Apna HTML/CSS/JS paste karein…"></textarea>
+      </div>
+    </section>
+    <!-- Right -->
+    <section class="pane">
+      <header><span class="h">Live Preview</span></header>
+      <div class="body preview">
+        <iframe id="view" sandbox="allow-scripts allow-forms"></iframe>
+      </div>
+    </section>
+  </div>
+
+<script>
+/* --- Code Player --- */
+(function(){
+  const $=s=>document.querySelector(s);
+  const codeEl=$('#code'),inputEl=$('#input'),iframe=$('#view'),bar=$('#bar');
+  const btnRun=$('#run'),btnPause=$('#pause'),btnReset=$('#reset'),btnStep=$('#step');
+  const fileIn=$('#file'),useSample=$('#useSample');
+  const speedEl=$('#speed'),chunkEl=$('#chunk'),fpsEl=$('#fps');
+  const speedVal=$('#speedVal'),chunkVal=$('#chunkVal'),updateBtn=$('#update');
+
+  let fullCode='',shown='',i=0,playing=false,timer=null;
+  let cps=240,chunk=4,fps=30;
+
+  speedEl.oninput=()=>speedVal.textContent=speedEl.value+' cps';
+  chunkEl.oninput=()=>chunkVal.textContent=chunkEl.value+' chars/tick';
+  updateBtn.onclick=()=>{cps=+speedEl.value;chunk=+chunkEl.value;fps=+fpsEl.value;if(playing){pause();play();}};
+
+  function setProgress(){bar.style.width=fullCode.length?(i/fullCode.length*100).toFixed(2)+'%':'0%'}
+  function renderCode(){codeEl.innerHTML=escapeHtml(shown)+'<span class="ghost-caret"></span>';codeEl.scrollTop=codeEl.scrollHeight}
+  function renderPreview(){iframe.srcdoc=shown}
+  function resetPlayback(){clearInterval(timer);playing=false;i=0;shown='';renderCode();renderPreview();setProgress();btnRun.disabled=false;btnPause.disabled=true;btnStep.disabled=false}
+
+  function play(){
+    if(!fullCode.trim()){pulse(inputEl);return;}
+    if(playing)return; playing=true;btnRun.disabled=true;btnPause.disabled=false;
+    const frameDelay=1000/fps; let buffer=0;
+    timer=setInterval(()=>{if(i<fullCode.length){
+        buffer+=cps/fps;
+        while(buffer>=chunk && i<fullCode.length){shown+=fullCode.substr(i,chunk);i+=chunk;buffer-=chunk;}
+        renderCode();renderPreview();setProgress();
+      } else pause();},frameDelay);
+  }
+  function pause(){clearInterval(timer);playing=false;btnRun.disabled=false;btnPause.disabled=true}
+  function stepOnce(){if(!fullCode.trim()){pulse(inputEl);return;}if(i>=fullCode.length)return;shown+=fullCode[i++];renderCode();renderPreview();setProgress()}
+  btnRun.onclick=play;btnPause.onclick=pause;btnReset.onclick=resetPlayback;btnStep.onclick=stepOnce;
+  inputEl.addEventListener('input',()=>{fullCode=inputEl.value;resetPlayback()});
+  fileIn.onchange=async e=>{const f=e.target.files?.[0];if(!f)return;const text=await f.text();inputEl.value=text;fullCode=text;resetPlayback();toast(`Loaded: ${f.name}`);fileIn.value=''}
+  useSample.onclick=()=>{const sample=`<!doctype html><html><body><h1 style="color:lime">Hacked!</h1><p>Matrix style typing...</p></body></html>`;inputEl.value=sample;fullCode=sample;resetPlayback()}
+  function escapeHtml(s){return s.replace(/[&<>]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]))}
+  function pulse(el){el.animate([{outline:'3px solid #ef4444'},{outline:'0'}],{duration:600,easing:'ease-out'})}
+  function toast(msg){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',right:'16px',bottom:'16px',padding:'10px 14px',background:'#000',color:'#90ee90',border:'1px solid #0f0',borderRadius:'8px',boxShadow:'0 0 15px #0f08',zIndex:50});document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+  resetPlayback();
+})();
+</script>
+</body>
+</html>
